@@ -1,5 +1,5 @@
 // jslint.js
-// 2013-03-18
+// 2013-03-19
 
 // Copyright (c) 2002 Douglas Crockford  (www.JSLint.com)
 
@@ -237,8 +237,8 @@
     bad_new, bad_number, bad_operand, bad_wrap, bitwise, block, browser, c,
     call, charAt, charCodeAt, character, closure, color, combine_var,
     conditional_assignment, confusing_a, confusing_regexp, constructor_name_a,
-    continue, control_a, create, d, dangling_a, data, debug, deleted, devel,
-    disrupt, duplicate_a, edge, edition, else, empty_block, empty_case,
+    continue, control_a, couch, create, d, dangling_a, data, debug, deleted,
+    devel, disrupt, duplicate_a, edge, edition, else, empty_block, empty_case,
     empty_class, entityify, eqeq, error_report, errors, es5, evidence, evil,
     exception, exec, expected_a, expected_a_at_b_c, expected_a_b,
     expected_a_b_from_c_d, expected_id_a, expected_identifier_a,
@@ -304,6 +304,7 @@ var JSLINT = (function () {
             bitwise   : true,
             browser   : true,
             'continue': true,
+            couch     : true,
             debug     : true,
             devel     : true,
             eqeq      : true,
@@ -510,6 +511,9 @@ var JSLINT = (function () {
             write_is_wrong: "document.write can be a form of eval."
         },
         comments_off,
+        couch = array_to_object([
+            'emit'
+        ], false),
 
         descapes = {
             'b': '\b',
@@ -584,7 +588,6 @@ var JSLINT = (function () {
 
         scope,      // An object containing an object for each variable in scope
         semicolon_coda = array_to_object([';', '"', '\'', ')'], true),
-        src,
         stack,
 
 // standard contains the global names that are provided by the
@@ -761,6 +764,10 @@ var JSLINT = (function () {
             add_to_predefined(node);
             option.node = false;
             node_js = true;
+        }
+        if (option.couch) {
+            add_to_predefined(couch);
+            option.couch = false;
         }
     }
 
@@ -1059,7 +1066,7 @@ var JSLINT = (function () {
         }
 
         function comment(snippet) {
-            if (comments_off || src) {
+            if (comments_off) {
                 warn_at('unexpected_comment', line, character);
             } else if (!option.todo && tox.test(snippet)) {
                 warn_at('todo_comment', line, character);
@@ -4157,7 +4164,6 @@ klass:              do {
         lookahead = [];
         node_js = false;
         prereg = true;
-        src = false;
         stack = null;
         strict_mode = false;
         urls = [];
@@ -4486,7 +4492,7 @@ klass:              do {
 
     itself.jslint = itself;
 
-    itself.edition = '2013-03-18';
+    itself.edition = '2013-03-19';
 
     return itself;
 }());
