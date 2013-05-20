@@ -1,0 +1,11 @@
+{
+  "name": "jslint",
+  "version": "2011.04.14",
+  "description": "JSLint component",
+  "keywords": [
+    "jslint",
+    "component"
+  ],
+  "main": "jslint.js",
+  "license": "JSLint License"
+}
