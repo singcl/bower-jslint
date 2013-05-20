@@ -1,5 +1,5 @@
 // jslint.js
-// 2012-02-23
+// 2012-03-02
 
 // Copyright (c) 2002 Douglas Crockford  (www.JSLint.com)
 
@@ -945,7 +945,7 @@ var JSLINT = (function () {
 // outer html token
         ox = /[>&]|<[\/!]?|--/,
 // attributes characters
-        qx = /[^a-zA-Z0-9+\-_\/ ]/,
+        qx = /[^a-zA-Z0-9+\-_\/. ]/,
 // style
         sx = /^\s*([{}:#%.=,>+\[\]@()"';]|[*$\^~]=|[a-zA-Z_][a-zA-Z0-9_\-]*|[0-9]+|<\/|\/\*)/,
         ssx = /^\s*([@#!"'};:\-%.=,+\[\]()*_]|[a-zA-Z][a-zA-Z0-9._\-]*|\/\*?|\d+(?:\.\d+)?|<\/)/,
@@ -5962,6 +5962,9 @@ klass:              do {
                 advance('>');
                 break;
             case '(end)':
+                if (stack.length !== 0) {
+                    warn('missing_a', next_token, '</' + stack.pop().string + '>');
+                }
                 return;
             default:
                 if (next_token.id === '(end)') {
@@ -6386,7 +6389,7 @@ klass:              do {
     };
     itself.jslint = itself;
 
-    itself.edition = '2012-02-23';
+    itself.edition = '2012-03-02';
 
     return itself;
 }());
