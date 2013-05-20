@@ -1,5 +1,5 @@
 // jslint.js
-// 2013-05-06
+// 2013-05-12
 
 // Copyright (c) 2002 Douglas Crockford  (www.JSLint.com)
 
@@ -507,7 +507,8 @@ var JSLINT = (function () {
         comments,
         comments_off,
         couch = array_to_object([
-            'emit'
+            'emit', 'getRow', 'isArray', 'log', 'provides', 'registerType',
+            'require', 'send', 'start', 'sum', 'toJSON'
         ], false),
 
         descapes = {
@@ -683,6 +684,7 @@ var JSLINT = (function () {
         if (option.couch) {
             add_to_predefined(couch);
             option.couch = false;
+            option.es5 = true;
         }
         if (option.devel) {
             add_to_predefined(devel);
@@ -691,6 +693,7 @@ var JSLINT = (function () {
         if (option.node) {
             add_to_predefined(node);
             option.node = false;
+            option.es5 = true;
             node_js = true;
         }
         if (option.rhino) {
@@ -4243,7 +4246,7 @@ klass:              do {
 
     itself.jslint = itself;
 
-    itself.edition = '2013-05-06';
+    itself.edition = '2013-05-12';
 
     return itself;
 }());
