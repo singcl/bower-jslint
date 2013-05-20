@@ -1,5 +1,5 @@
 // jslint.js
-// 2012-02-03
+// 2012-02-13
 
 // Copyright (c) 2002 Douglas Crockford  (www.JSLint.com)
 
@@ -3631,9 +3631,15 @@ klass:              do {
         no_space();
         step_out(')', this);
         if (value.id === 'function') {
-            if (next_token.id === '(') {
+            switch (next_token.id) {
+            case '(':
                 warn('move_invocation');
-            } else {
+                break;
+            case '.':
+            case '[':
+                warn('unexpected_a');
+                break;
+            default:
                 warn('bad_wrap', this);
             }
         }
@@ -4066,6 +4072,18 @@ klass:              do {
         do_function(this, id);
         if (funct['(loopage)']) {
             warn('function_loop');
+        }
+        switch (next_token.id) {
+        case ';':
+        case '(':
+        case ')':
+        case ',':
+        case ']':
+        case '}':
+        case ':':
+            break;
+        default:
+            stop('unexpected_a');
         }
         this.arity = 'function';
         return this;
@@ -6364,7 +6382,7 @@ klass:              do {
     };
     itself.jslint = itself;
 
-    itself.edition = '2012-02-03';
+    itself.edition = '2012-02-13';
 
     return itself;
 }());
