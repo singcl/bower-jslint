@@ -1,5 +1,5 @@
 // jslint.js
-// 2011-04-21
+// 2011-04-23
 
 // Copyright (c) 2002 Douglas Crockford  (www.JSLint.com)
 
@@ -60,7 +60,7 @@
 // If a stopping error was found, a null will be the last element of the
 // JSLINT.errors array. A stopping error means that JSLint was not confident
 // enough to continue. It does not necessarily mean that the error was
-// especailly heinous.
+// especially heinous.
 
 // You can request a Function Report, which shows all of the functions
 // and the parameters and vars that they use. This can be used to find
@@ -289,8 +289,8 @@
     infix_in, infobackground, infotext, init, input, ins, insecure_a,
     isAlpha, isApplicationRunning, isArray, isDigit, isFinite, isNaN, ivory,
     join, jslint, json, kbd, keygen, keys, khaki, konfabulatorVersion,
-    label, label_a_b, labeled, lang, lavender, lavenderblush, lawngreen,
-    lbp, leading_decimal_a, led, left, legend, lemonchiffon, length,
+    label, label_a_b, labeled, lang, lastIndexOf, lavender, lavenderblush,
+    lawngreen, lbp, leading_decimal_a, led, left, legend, lemonchiffon, length,
     "letter-spacing", li, lib, lightblue, lightcoral, lightcyan,
     lightgoldenrodyellow, lightgreen, lightpink, lightsalmon, lightseagreen,
     lightskyblue, lightslategray, lightsteelblue, lightyellow, lime,
@@ -995,6 +995,11 @@ var JSLINT = (function () {
             util         : false,
             __filename   : false,
             __dirname    : false
+        },
+        numbery = {
+            indexOf     : true,
+            lastIndexOf : true,
+            search      : true
         },
         properties,
         next_token,
@@ -2978,6 +2983,11 @@ loop:   for (;;) {
         case '{':
             warn(message || bundle.weird_condition, node);
             break;
+        case '(':
+            if (node.first.id === '.' && numbery[node.first.second.value] === true) {
+                warn(message || bundle.weird_condition, node);
+            }
+            break;
         }
         return node;
     }
@@ -3744,7 +3754,7 @@ loop:   for (;;) {
     });
     prefix('!', function () {
         no_space_only();
-        this.first = expression(150);
+        this.first = expected_condition(expression(150));
         this.arity = 'prefix';
         if (bang[this.first.id] === true) {
             warn('confusing_a', this);
@@ -6611,7 +6621,7 @@ loop:   for (;;) {
     };
     itself.jslint = itself;
 
-    itself.edition = '2011-04-21';
+    itself.edition = '2011-04-23';
 
     return itself;
 
