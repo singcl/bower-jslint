@@ -1,5 +1,5 @@
 // jslint.js
-// 2011-04-18
+// 2011-04-19
 
 // Copyright (c) 2002 Douglas Crockford  (www.JSLint.com)
 
@@ -203,22 +203,23 @@
 
 // For example:
 
-/*properties "\b", "\t", "\n", "\f", "\r", "!=", "!==", "\"", "%", "'",
-    "(begin)", "(breakage)", "(context)", "(error)", "(global)",
-    "(identifier)", "(line)", "(loopage)", "(name)", "(onevar)", "(params)",
-    "(scope)", "(statement)", "(token)", "(verb)", ")", "*", "+", "-", "\/",
-    ";", "<", "<=", "==", "===", ">", ">=", ADSAFE, ActiveXObject,
-    Array, Boolean, Buffer, COM, CScript, Canvas, CustomAnimation, Date,
-    Debug, E, Enumerator, Error, EvalError, FadeAnimation, Flash, FormField,
-    Frame, Function, HotKey, Image, JSON, LN10, LN2, LOG10E, LOG2E,
-    MAX_VALUE, MIN_VALUE, Math, MenuItem, MoveAnimation, NEGATIVE_INFINITY,
-    Number, Object, Option, PI, POSITIVE_INFINITY, Point, RangeError,
-    Rectangle, ReferenceError, RegExp, ResizeAnimation, RotateAnimation,
-    SQRT1_2, SQRT2, ScrollBar, String, Style, SyntaxError, System, Text,
-    TextArea, Timer, TypeError, URIError, URL, VBArray, WScript, Web,
-    Window, XMLDOM, XMLHttpRequest, "\\", __dirname, __filename, a,
-    a_function, a_label, a_not_allowed, a_not_defined, a_scope, abbr,
-    acronym, activeborder, activecaption, address, adsafe, adsafe_a,
+/*properties "\b", "\t", "\n", "\f", "\r", "!=", "!==", "\"", "%",
+    "&", "'", "(begin)", "(breakage)", "(context)", "(error)",
+    "(global)", "(identifier)", "(line)", "(loopage)", "(name)", "(onevar)",
+    "(params)", "(scope)", "(statement)", "(token)", "(verb)", ")", "*",
+    "+", "-", "/", ";", "<", "<<", "<=", "==", "===",
+    ">", ">=", ">>", ">>>", ADSAFE, ActiveXObject, Array, Boolean, Buffer,
+    COM, CScript, Canvas, CustomAnimation, Date, Debug, E, Enumerator,
+    Error, EvalError, FadeAnimation, Flash, FormField, Frame, Function,
+    HotKey, Image, JSON, LN10, LN2, LOG10E, LOG2E, MAX_VALUE, MIN_VALUE,
+    Math, MenuItem, MoveAnimation, NEGATIVE_INFINITY, Number, Object,
+    Option, PI, POSITIVE_INFINITY, Point, RangeError, Rectangle,
+    ReferenceError, RegExp, ResizeAnimation, RotateAnimation, SQRT1_2,
+    SQRT2, ScrollBar, String, Style, SyntaxError, System, Text, TextArea,
+    Timer, TypeError, URIError, URL, VBArray, WScript, Web, Window, XMLDOM,
+    XMLHttpRequest, "\\", "^", __dirname, __filename, a, a_function,
+    a_label, a_not_allowed, a_not_defined, a_scope, abbr, acronym,
+    activeborder, activecaption, address, adsafe, adsafe_a,
     adsafe_autocomplete, adsafe_bad_id, adsafe_div, adsafe_fragment,
     adsafe_go, adsafe_html, adsafe_id, adsafe_id_go, adsafe_lib,
     adsafe_lib_second, adsafe_missing_id, adsafe_name_a, adsafe_placement,
@@ -338,21 +339,22 @@
     threeddarkshadow, threedface, threedhighlight, threedlightshadow,
     threedshadow, thru, time, title, toLowerCase, toString, toUpperCase,
     toint32, token, tomato, too_long, too_many, top, tr, trailing_decimal_a,
-    tree, tt, tty, turquoise, tv, type, u, ul, unclosed, unclosed_comment,
-    unclosed_regexp, undef, unescape, unescaped_a, unexpected_a,
-    unexpected_char_a_b, unexpected_comment, unexpected_property_a,
-    unexpected_space_a_b, "unicode-bidi", unnecessary_initialize,
-    unnecessary_use, unreachable_a_b, unrecognized_style_attribute_a,
-    unrecognized_tag_a, unsafe, unused, unwatch, updateNow, url, urls,
-    use_array, use_braces, use_object, used_before_a, util, value, valueOf,
-    var, var_a_not, version, "vertical-align", video, violet, visibility,
-    was, watch, weird_assignment, weird_condition, weird_new, weird_program,
+    tree, tt, tty, turquoise, tv, type, typeof, u, ul, unclosed,
+    unclosed_comment, unclosed_regexp, undef, unescape, unescaped_a,
+    unexpected_a, unexpected_char_a_b, unexpected_comment,
+    unexpected_property_a, unexpected_space_a_b, "unicode-bidi",
+    unnecessary_initialize, unnecessary_use, unreachable_a_b,
+    unrecognized_style_attribute_a, unrecognized_tag_a, unsafe, unused,
+    unwatch, updateNow, url, urls, use_array, use_braces, use_object,
+    used_before_a, util, value, valueOf, var, var_a_not, version,
+    "vertical-align", video, violet, visibility, was, watch,
+    weird_assignment, weird_condition, weird_new, weird_program,
     weird_relation, weird_ternary, wheat, white, "white-space", whitesmoke,
     widget, width, window, windowframe, windows, windowtext, "word-spacing",
     "word-wrap", wrap, wrap_immediate, wrap_regexp, write_is_wrong,
     yahooCheckLogin, yahooLogin, yahooLogout, yellow, yellowgreen,
-    "z-index"
-*/
+    "z-index", "|", "~"
+ */
 
 // The global directive is used to declare global variables that can
 // be accessed by the program. If a declaration is true, then the variable
@@ -377,7 +379,7 @@ var JSLINT = (function () {
             '^': true,
             '<<': true,
             '>>': true,
-            '>>>': true,
+            '>>>': true
         },
         adsafe_prefix = {
             '-': true,
@@ -1206,8 +1208,7 @@ var JSLINT = (function () {
 // html token
         hx = /^\s*(['"=>\/&#]|<(?:\/|\!(?:--)?)?|[a-zA-Z][a-zA-Z0-9_\-:]*|[0-9]+|--)/,
 // characters in strings that need escapement
-        nx = /[\u0000-\u001f&<"\/\\\u007f-\u009f\u00ad\u0600-\u0604\u070f\u17b4\u17b5\u200c-\u200f\u2028-\u202f\u2060-\u206f\ufeff\ufff0-\uffff]/,
-        nxg = /[\u0000-\u001f&<"\/\\\u007f-\u009f\u00ad\u0600-\u0604\u070f\u17b4\u17b5\u200c-\u200f\u2028-\u202f\u2060-\u206f\ufeff\ufff0-\uffff]/g,
+        nx = /[\u0000-\u001f"\\\u007f-\u009f\u00ad\u0600-\u0604\u070f\u17b4\u17b5\u200c-\u200f\u2028-\u202f\u2060-\u206f\ufeff\ufff0-\uffff]/g,
 // outer html token
         ox = /[>&]|<[\/!]?|--/,
 // star slash
@@ -1314,28 +1315,13 @@ var JSLINT = (function () {
         };
     }
 
-    if (typeof String.prototype.name !== 'function') {
-        String.prototype.name = function () {
 
-// If the string looks like an identifier, then we can return it as is.
-// If the string contains no control characters, no quote characters, and no
-// backslash characters, then we can simply slap some quotes around it.
-// Otherwise we must also replace the offending characters with safe
-// sequences.
+    function sanitize(a) {
 
-            if (ix.test(this)) {
-                return this;
-            }
-            if (nx.test(this)) {
-                return '"' + this.replace(nxg, function (a) {
-                    if (escapes[a]) {
-                        return escapes[a];
-                    }
-                    return '\\u' + ('0000' + a.charCodeAt().toString(16)).slice(-4);
-                }) + '"';
-            }
-            return '"' + this + '"';
-        };
+//  Escapify a troublesome character.
+
+        return escapes[a] ? escapes[a] :
+            '\\u' + ('0000' + a.charCodeAt().toString(16)).slice(-4);
     }
 
 
@@ -4010,13 +3996,12 @@ loop:   for (;;) {
         edge();
         var e = expression(0), s;
         if (e.arity === 'string') {
-            if (option.safe && banned[e.value] === true) {
-                warn('adsafe_a', e);
+            if (option.safe && (banned[e.value] ||
+                    e.value.charAt(0) === '_' || e.value.slice(-1) === '_')) {
+                warn('adsafe_subscript_a', e);
             } else if (!option.evil &&
                     (e.value === 'eval' || e.value === 'execScript')) {
                 warn('evil', e);
-            } else if (option.safe && e.value.charAt(0) === '_') {
-                warn('adsafe_subscript_a', e);
             }
             tally_property(e.value);
             if (!option.sub && ix.test(e.value)) {
@@ -4026,7 +4011,7 @@ loop:   for (;;) {
                 }
             }
         } else if (e.arity !== 'number' && option.safe) {
-            if (!(  (e.arity === 'prefix' && adsafe_prefix[e.id] === true) ||
+            if (!((e.arity === 'prefix' && adsafe_prefix[e.id] === true) ||
                     (e.arity === 'infix' && adsafe_infix[e.id] === true))) {
                 warn('adsafe_subscript_a', e);
             }
@@ -6601,7 +6586,8 @@ loop:   for (;;) {
                     length = 13;
                     for (i = 0; i < keys.length; i += 1) {
                         key = keys[i];
-                        name = key.name();
+                        name = ix.test(key) ? key :
+                            '"' + key.entityify().replace(nx, sanitize) + '"';
                         if (length + name.length > 72) {
                             output.push(mem + '<br>');
                             mem = '    ';
@@ -6625,7 +6611,7 @@ loop:   for (;;) {
     };
     itself.jslint = itself;
 
-    itself.edition = '2011-04-18';
+    itself.edition = '2011-04-19';
 
     return itself;
 
