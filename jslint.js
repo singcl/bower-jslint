@@ -1,5 +1,5 @@
 // jslint.js
-// 2015-09-19
+// 2015-09-20
 // Copyright (c) 2015 Douglas Crockford  (www.JSLint.com)
 
 // Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -146,10 +146,9 @@ var jslint = (function JSLint() {
         bitwise: true,
         browser: [
             'Audio', 'clearInterval', 'clearTimeout', 'document', 'event',
-            'FormData', 'frames', 'history', 'Image', 'localStorage',
-            'location', 'name', 'navigator', 'Option', 'screen',
-            'sessionStorage', 'setInterval', 'setTimeout', 'Storage',
-            'XMLHttpRequest'
+            'FormData', 'history', 'Image', 'localStorage', 'location', 'name',
+            'navigator', 'Option', 'screen', 'sessionStorage', 'setInterval',
+            'setTimeout', 'Storage', 'XMLHttpRequest'
         ],
         couch: [
             'emit', 'getRow', 'isArray', 'log', 'provides', 'registerType',
@@ -1658,8 +1657,8 @@ var jslint = (function JSLint() {
     function enroll(name, role, readonly) {
 
 // Enroll a name into the current function context. The role can be exception,
-// label, parameter, or variable. We look for variable redefinition because it
-// causes confusion.
+// function, label, parameter, or variable. We look for variable redefinition
+// because it causes confusion.
 
         var id = name.id;
 
@@ -1672,7 +1671,7 @@ var jslint = (function JSLint() {
 // Has the name been enrolled in this context?
 
             var earlier = functionage.context[id];
-            if (role !== 'function' && earlier) {
+            if (earlier) {
                 warn(
                     'redefinition_a_b',
                     name,
@@ -1695,11 +1694,10 @@ var jslint = (function JSLint() {
                             warn('unexpected_a', name);
                         }
                     } else {
-                        if (
-                            (role !== 'exception' || earlier.role !== 'exception') &&
-                            role !== 'parameter' &&
-                            role !== 'function'
-                        ) {
+                        if ((
+                            role !== 'exception' ||
+                            earlier.role !== 'exception'
+                        ) && role !== 'parameter') {
                             warn(
                                 'redefinition_a_b',
                                 name,
@@ -2886,8 +2884,7 @@ var jslint = (function JSLint() {
                         } else if (extra !== true) {
                             advance(':');
                         }
-                        name.arity = 'variable';
-                        value = name;
+                        value = expression(Infinity, true);
                         break;
                     case '(':
                         if (!option.es6 && typeof extra !== 'string') {
@@ -4344,7 +4341,7 @@ var jslint = (function JSLint() {
 
 // The jslint function itself.
 
-    return function jslint(source, option_object, global_array) {
+    return function (source, option_object, global_array) {
         try {
             warnings = [];
             option = option_object || empty();
@@ -4439,7 +4436,7 @@ var jslint = (function JSLint() {
             }
         }
         return {
-            edition: "2015-09-19",
+            edition: "2015-09-20",
             functions: functions,
             global: global,
             id: "(JSLint)",
