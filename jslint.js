@@ -1,5 +1,5 @@
 // jslint.js
-// 2015-08-19
+// 2015-08-20
 // Copyright (c) 2015 Douglas Crockford  (www.JSLint.com)
 
 // Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -92,19 +92,19 @@
     expected_a_b, expected_a_b_from_c_d, expected_a_before_b,
     expected_digits_after_a, expected_four_digits, expected_identifier_a,
     expected_line_break_a_b, expected_regexp_factor_a, expected_space_a_b,
-    expected_string_a, expected_type_string_a, expression, extra, flag, for,
-    forEach, free, from, fud, fudge, function, function_in_loop, functions, g,
-    global, i, id, identifier, import, imports, inc, indexOf, infix_in, init,
-    initial, isArray, isNaN, join, json, keys, label, label_a, lbp, led,
-    length, level, line, lines, live, loop, m, margin, match, maxerr, maxlen,
-    message, misplaced_a, misplaced_directive_a, module, naked_block, name,
-    names, nested_comment, new, node, not_label_a, nud, ok, open, option,
-    out_of_scope_a, parameters, pop, property, push, qmark, quote,
-    redefinition_a_b, replace, reserved_a, role, search, signature,
-    slash_equal, slice, sort, split, statement, stop, strict, subscript_a,
-    switch, test, this, thru, toString, todo_comment, tokens, too_long,
-    too_many, tree, type, u, unclosed_comment, unclosed_mega, unclosed_string,
-    undeclared_a, unexpected_a, unexpected_a_after_b,
+    expected_statements_a, expected_string_a, expected_type_string_a,
+    expression, extra, flag, for, forEach, free, from, fud, fudge, function,
+    function_in_loop, functions, g, global, i, id, identifier, import, imports,
+    inc, indexOf, infix_in, init, initial, isArray, isNaN, join, json, keys,
+    label, label_a, lbp, led, length, level, line, lines, live, loop, m,
+    margin, match, maxerr, maxlen, message, misplaced_a, misplaced_directive_a,
+    module, naked_block, name, names, nested_comment, new, node, not_label_a,
+    nud, ok, open, option, out_of_scope_a, parameters, pop, property, push,
+    qmark, quote, redefinition_a_b, replace, reserved_a, role, search,
+    signature, slash_equal, slice, some, sort, split, statement, stop, strict,
+    subscript_a, switch, test, this, thru, toString, todo_comment, tokens,
+    too_long, too_many, tree, type, u, unclosed_comment, unclosed_mega,
+    unclosed_string, undeclared_a, unexpected_a, unexpected_a_after_b,
     unexpected_at_top_level_a, unexpected_char_a, unexpected_comment,
     unexpected_directive_a, unexpected_expression_a, unexpected_label_a,
     unexpected_parens, unexpected_quotes_a, unexpected_space_a_b,
@@ -301,6 +301,7 @@ var jslint = (function JSLint() {
         expected_line_break_a_b: "Expected a line break between '{a}' and '{b}'.",
         expected_regexp_factor_a: "Expected a regexp factor and instead saw '{a}'.",
         expected_space_a_b: "Expected one space between '{a}' and '{b}'.",
+        expected_statements_a: "Expected statements before '{a}'.",
         expected_string_a: "Expected a string and instead saw '{a}'.",
         expected_type_string_a: "Expected a type string and instead saw '{a}'.",
         function_in_loop: "Don't make functions within a loop.",
@@ -873,9 +874,6 @@ var jslint = (function JSLint() {
 // include directives and notices of incompletion.
 
             var the_comment = make('(comment)', snippet);
-            if (json_mode) {
-                warn('unexpected_comment', the_comment);
-            }
             if (Array.isArray(snippet)) {
                 snippet = snippet.join(' ');
             }
@@ -1265,18 +1263,11 @@ var jslint = (function JSLint() {
 
             switch (snippet) {
 
-// The token is a single quote string.
+// The token is a single or double quote string.
 
             case '\'':
-                if (json_mode) {
-                    warn_at('unexpected_a', line, column, '\'');
-                }
-                return string('\'');
-
-// The token is a double quote string.
-
             case '"':
-                return string('"');
+                return string(snippet);
 
 // The token is a megastring. We don't allow any kind if mega nesting.
 
@@ -1524,7 +1515,7 @@ var jslint = (function JSLint() {
 
         var cadet = tokens[token_nr];
         token_nr += 1;
-        return cadet.id === '(comment)'
+        return cadet.id === '(comment)' && !json_mode
             ? dispense()
             : cadet;
     }
@@ -1585,6 +1576,9 @@ var jslint = (function JSLint() {
             advance('{');
             if (next_token.id !== '}') {
                 (function next() {
+                    if (next_token.quote !== '"') {
+                        warn('unexpected_a', next_token, next_token.quote);
+                    }
                     advance('(string)');
                     if (object[token.value] !== undefined) {
                         warn('duplicate_a', token);
@@ -1638,6 +1632,9 @@ var jslint = (function JSLint() {
             advance();
             break;
         case '(string)':
+            if (next_token.quote !== '"') {
+                warn('unexpected_a', next_token, next_token.quote);
+            }
             advance();
             break;
         case '-':
@@ -1799,6 +1796,78 @@ var jslint = (function JSLint() {
             break;
         }
         return the_value;
+    }
+
+    function is_weird(thing) {
+        return (
+            thing.id === '(regexp)' ||
+            thing.id === '{' ||
+            thing.id === '=>' ||
+            thing.id === 'function' ||
+            (thing.id === '[' && thing.arity === 'unary')
+        );
+    }
+
+    function are_similar(a, b) {
+        if (a === b) {
+            return true;
+        }
+        if (Array.isArray(a)) {
+            return (
+                Array.isArray(b) &&
+                a.length === b.length &&
+                a.every(function (value, index) {
+                    return are_similar(value, b[index]);
+                })
+            );
+        }
+        if (Array.isArray(b)) {
+            return false;
+        }
+        if (a.id === '(number)' && b.id === '(number)') {
+            return a.value === b.value;
+        }
+        var a_string, b_string;
+        if (a.id === '(string)') {
+            a_string = a.value;
+        } else if (a.id === '`' && a.constant) {
+            a_string = a.value[0];
+        }
+        if (b.id === '(string)') {
+            b_string = b.value;
+        } else if (b.id === '`' && b.constant) {
+            b_string = b.value[0];
+        }
+        if (typeof a_string === 'string') {
+            return a_string === b_string;
+        }
+        if (is_weird(a) || is_weird(b)) {
+            return false;
+        }
+        if (a.arity === b.arity && a.id === b.id) {
+            if (a.id === '.') {
+                return are_similar(a.expression, b.expression) &&
+                        are_similar(a.name, b.name);
+            }
+            switch (a.arity) {
+            case 'unary':
+                return are_similar(a.expression, b.expression);
+            case 'binary':
+                return a.id !== '(' &&
+                        are_similar(a.expression[0], b.expression[0]) &&
+                        are_similar(a.expression[1], b.expression[1]);
+            case 'ternary':
+                return are_similar(a.expression[0], b.expression[0]) &&
+                        are_similar(a.expression[1], b.expression[1]) &&
+                        are_similar(a.expression[2], b.expression[2]);
+            case 'function':
+            case 'regexp':
+                return false;
+            default:
+                return true;
+            }
+        }
+        return false;
     }
 
     function semicolon() {
@@ -3182,7 +3251,8 @@ var jslint = (function JSLint() {
         return the_return;
     });
     stmt('switch', function () {
-        var last,
+        var dups = [],
+            last,
             stmts,
             the_cases = [],
             the_disrupt = true,
@@ -3202,13 +3272,24 @@ var jslint = (function JSLint() {
             (function minor() {
                 advance('case');
                 token.switch = true;
-                the_case.expression.push(expression(0));
+                var exp = expression(0);
+                if (dups.some(function (thing) {
+                    return are_similar(thing, exp);
+                })) {
+                    warn('unexpected_a', exp);
+                }
+                dups.push(exp);
+                the_case.expression.push(exp);
                 advance(':');
                 if (next_token.id === 'case') {
                     return minor();
                 }
             }());
             stmts = statements();
+            if (stmts.length < 1) {
+                warn('expected_statements_a');
+                return;
+            }
             the_case.block = stmts;
             the_cases.push(the_case);
             last = stmts[stmts.length - 1];
@@ -3228,13 +3309,14 @@ var jslint = (function JSLint() {
                 return major();
             }
         }());
+        dups = undefined;
         if (next_token.id === 'default') {
             advance('default');
             token.switch = true;
             advance(':');
             the_switch.else = statements();
             if (the_switch.else.length < 1) {
-                warn('unexpected_a');
+                warn('expected_statements_a');
                 the_disrupt = false;
             } else {
                 the_disrupt =
@@ -3736,79 +3818,6 @@ var jslint = (function JSLint() {
         }
         return pop_block();
     }
-
-    function is_weird(thing) {
-        return (
-            thing.id === '(regexp)' ||
-            thing.id === '{' ||
-            thing.id === '=>' ||
-            thing.id === 'function' ||
-            (thing.id === '[' && thing.arity === 'unary')
-        );
-    }
-
-    function are_similar(a, b) {
-        if (a === b) {
-            return true;
-        }
-        if (Array.isArray(a)) {
-            return (
-                Array.isArray(b) &&
-                a.length === b.length &&
-                a.every(function (value, index) {
-                    return are_similar(value, b[index]);
-                })
-            );
-        }
-        if (Array.isArray(b)) {
-            return false;
-        }
-        if (a.id === '(number)' && b.id === '(number)') {
-            return a.value === b.value;
-        }
-        var a_string, b_string;
-        if (a.id === '(string)') {
-            a_string = a.value;
-        } else if (a.id === '`' && a.constant) {
-            a_string = a.value[0];
-        }
-        if (b.id === '(string)') {
-            b_string = b.value;
-        } else if (b.id === '`' && b.constant) {
-            b_string = b.value[0];
-        }
-        if (typeof a_string === 'string') {
-            return a_string === b_string;
-        }
-        if (is_weird(a) || is_weird(b)) {
-            return false;
-        }
-        if (a.arity === b.arity && a.id === b.id) {
-            if (a.id === '.') {
-                return are_similar(a.expression, b.expression) &&
-                        are_similar(a.name, b.name);
-            }
-            switch (a.arity) {
-            case 'unary':
-                return are_similar(a.expression, b.expression);
-            case 'binary':
-                return a.id !== '(' &&
-                        are_similar(a.expression[0], b.expression[0]) &&
-                        are_similar(a.expression[1], b.expression[1]);
-            case 'ternary':
-                return are_similar(a.expression[0], b.expression[0]) &&
-                        are_similar(a.expression[1], b.expression[1]) &&
-                        are_similar(a.expression[2], b.expression[2]);
-            case 'function':
-            case 'regexp':
-                return false;
-            default:
-                return true;
-            }
-        }
-        return false;
-    }
-
 
     postaction('binary', function (thing) {
         if (relationop[thing.id]) {
@@ -4424,7 +4433,7 @@ var jslint = (function JSLint() {
             }
         }
         return {
-            edition: "2015-08-19",
+            edition: "2015-08-20",
             functions: functions,
             global: global,
             id: "(JSLint)",
